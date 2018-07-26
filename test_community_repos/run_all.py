@@ -5,6 +5,13 @@ import sys
 PY3 = sys.version_info >= (3, 0)
 TIMEOUT = 2 * 60 * 60  # 2 hours
 
+blacklist = {
+    "DrQA",
+    "awd-lstm-lm", # https://github.com/salesforce/pytorch-qrnn/issues/17
+    "optnet", # doesn't work for >=0.3
+    "qpth",
+    "torchMoji", # https://github.com/huggingface/torchMoji/pull/15
+}
 
 def run(command, timeout=None):
     """
@@ -47,8 +54,12 @@ if rc is not 0:
 repos = stdout.split('\n')
 repos = sorted([f[2:] for f in repos if len(f) > 2])
 for f in repos:
-    print("found {}".format(f))
-    setattr(TestRepos, "test_" + f, lambda cls, f=f: _test(cls, f))
+    if f in blacklist:
+        print("skip {}".format(f))
+        continue
+    else:
+        print("found {}".format(f))
+        setattr(TestRepos, "test_" + f, lambda cls, f=f: _test(cls, f))
 
 
 if __name__ == '__main__':
